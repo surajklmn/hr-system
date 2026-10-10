@@ -95,3 +95,17 @@ id        |integer(int64)        | Yes                | empoyee's PK ID
 
 - 400 Bad Request: Malformed ID (e.g /api/v1/employees/asdf).
 - 404 Not Found: No employee found with the given ID.
+
+
+
+
+
+
+
+## Planned / Future Endpoints
+
+- `GET /api/v1/employees`: List employees with pagination
+- `DELETE /api/v1/employees/{id}`: Delete employee by ID, it is a soft delete, `status = 'INACTIVE'`
+- `PUT /api/v1/employees/{id}`: Update employee details(department, role)
+
+
