@@ -8,11 +8,13 @@ import (
 )
 
 var ErrNotFound = errors.New("employee not found")
+
 type Repository struct {
-	db *sql.DB // unexported db(this is private to this package)
+	// unexported db(this is private to this package)
+	db *sql.DB 
 }
 
-// This constructor helps to acceess the private db and open a connetion.
+// This constructor helps to acceess the private db inside Repository struct and open a connetion.
 func NewRepository(db *sql.DB) *Repository{
 	return &Repository{db:db}
 }
@@ -45,6 +47,7 @@ func (repo *Repository) GetByID(ctx context.Context, id int64)(*Employee, error)
 
 	var emp Employee
 
+// Copy columns from the matched rows into the values pointed here
 	err := row.Scan(&emp.ID, &emp.Name, &emp.Email, &emp.Department, &emp.Role, &emp.Status, &emp.CreatedAt, &emp.UpdatedAt)
 	if err != nil{
 		// We check if the error is same as the employee not found, if it's the same then we return our self defined error

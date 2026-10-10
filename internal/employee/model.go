@@ -37,7 +37,7 @@ func (r *CreateEmployeeRequest) Validate() error{
 	// We can do this another way by using mail.ParseAddress(repo.Email)
 	// Will do it in a refactor
 	if !strings.Contains(r.Email,"@"){
-		return errors.New("invalid email address")
+	return errors.New("invalid email address")
 	}
 
 	if strings.TrimSpace(r.Department) == ""{
