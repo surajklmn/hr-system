@@ -1,5 +1,5 @@
 .env
-server
+/server
 *.db
 *.db-wal
 *.db-shm
