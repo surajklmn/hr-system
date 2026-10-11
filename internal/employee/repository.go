@@ -5,9 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 )
 
 var ErrNotFound = errors.New("employee not found")
+var ErrDuplicateEmail = errors.New("email already exists")
 
 type Repository struct {
 	// unexported db(this is private to this package)
@@ -25,8 +27,11 @@ func (repo *Repository) Create(ctx context.Context, emp *Employee)(*Employee, er
 	// Run queries that modify data without returning rows , INSERT, UPDATE, DELETE
 	result, err :=repo.db.ExecContext(ctx, query, emp.Name,emp.Email, emp.Department, emp.Role,emp.Status, emp.CreatedAt, emp.UpdatedAt)
 	if err != nil{
-		return nil, err
+		if strings.Contains(err.Error(),"UNIQUE constraint failed: employees.email"){
+		return nil, ErrDuplicateEmail
 	}
+	return nil, err
+}
 	// Autoincrement the integer ID
 	id, err:= result.LastInsertId()
 	if err != nil{

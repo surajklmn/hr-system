@@ -10,7 +10,7 @@ import (
 )
 
 type Handler struct{
-service *Service
+	service *Service
 }
 
 func NewHandler(service *Service) *Handler{
@@ -29,8 +29,11 @@ func (h *Handler) Create(w http.ResponseWriter,r *http.Request){
 	}
 	createdEmp, err := h.service.Create(r.Context(), req)
 	if err != nil{
-	http.Error(w, err.Error(),http.StatusBadRequest)
-		// return right after error
+		if errors.Is(err, ErrDuplicateEmail){
+			http.Error(w,err.Error(),http.StatusConflict)
+			return
+		}
+		http.Error(w, err.Error(),http.StatusBadRequest)
 		return
 	}
 

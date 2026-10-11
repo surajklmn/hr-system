@@ -23,7 +23,7 @@ func (s *Service) Create(ctx context.Context,req CreateEmployeeRequest)(emp *Emp
 		return nil,err
 	}
 	if req.Role == "" {
-		req.Role = "employee"
+		req.Role = RoleEmployee
 	}
 	now := time.Now().UTC()
 
@@ -34,8 +34,7 @@ func (s *Service) Create(ctx context.Context,req CreateEmployeeRequest)(emp *Emp
 		Email: req.Email,
 		Department: req.Department,
 		Role: req.Role,
-		Status: "ACTIVE",
-		// Otherwise it defaults to the 0 value of time which is when go was relased, so i had to set it to now
+		Status: StatusActive,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
