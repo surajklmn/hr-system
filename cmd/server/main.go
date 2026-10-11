@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -41,8 +42,9 @@ func main(){
 	}
 
 	defer db.Close()
-	mux := http.NewServeMux()//Our router instead of default one
 	log.Println("Connected to SQLite database")
+
+	mux := http.NewServeMux()//Our router instead of default one
 	empRepo := employee.NewRepository(db)
 	empService := employee.NewService(empRepo)
 	empHandler := employee.NewHandler(empService)
@@ -50,7 +52,6 @@ func main(){
 
 // Wire leave moduel
 	leaveRepo := leave.NewRepository(db)
-
 	leaveService := leave.NewService(leaveRepo, empService)
 	leaveHandler := leave.NewHandler(leaveService)
 	leaveHandler.RegisterRoutes(mux)
@@ -58,7 +59,14 @@ func main(){
 	mux.HandleFunc("GET /health",health)
 
 	log.Printf("Server running on port %s", port)
+	server := &http.Server{
+		Addr: ":" + port,
+		Handler: mux,
+		ReadTimeout: 5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout: time.Minute,
+	}
 
-	log.Fatal(http.ListenAndServe(":"+port,mux)) // ListenAndServe expects host:port, we left the host empty so it's default to 0.0.0.0
+	log.Fatal(server.ListenAndServe()) 
 
 }
