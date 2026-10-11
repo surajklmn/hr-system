@@ -1,19 +1,58 @@
 package leave
 
-import(
-	"time"
+import (
 	"errors"
+	"fmt"
+	"time"
+	"slices"
 )
+
 const dateLayout = "2006-01-02"
+
+type LeaveType string 
+
+const (
+	LeaveTypeAnnual LeaveType = "ANNUAL"
+	LeaveTypeSick LeaveType = "SICK"
+	LeaveTypeUnpaid LeaveType = "UNPAID"
+)
+
+var validLeaveTypes = map[LeaveType]bool{
+	LeaveTypeAnnual: true,
+	LeaveTypeSick: true,
+	LeaveTypeUnpaid: true,
+}
+
+func (lt LeaveType) IsValid() bool {
+	return validLeaveTypes[lt]
+}
+
+type Status string
+
+const (
+	StatusPending Status = "PENDING"
+	StatusApproved Status = "APPROVED"
+	StatusRejected Status = "REJECTED"
+)
+
+var allowedTransitions = map[Status][]Status{
+	StatusPending: {StatusApproved, StatusRejected},
+	StatusApproved:{},
+	StatusRejected:{},
+}
+
+func (current Status) CanTransitionTo(next Status) bool{
+	return slices.Contains(allowedTransitions[current], next)
+	}
 
 type LeaveRequest struct{
 	ID int64 `json:"id"`
 	EmployeeID int64 `json:"employee_id"`
-	LeaveType  string `json:"leave_type"`
+	LeaveType  LeaveType `json:"leave_type"`
 	StartDate  string `json:"start_date"`
 	EndDate string `json:"end_date"`
 	Reason string `json:"reason"`
-	Status string `json:"status"`
+	Status Status `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -21,7 +60,7 @@ type LeaveRequest struct{
 
 type CreateLeaveRequest struct{
 	EmployeeID int64`json:"employee_id"`
-	LeaveType  string `json:"leave_type"`
+	LeaveType  LeaveType `json:"leave_type"`
 	StartDate  string `json:"start_date"`
 	EndDate string `json:"end_date"`
 	Reason string `json:"reason"`
@@ -29,19 +68,20 @@ type CreateLeaveRequest struct{
 
 func(r *CreateLeaveRequest) Validate() error{
 	if r.EmployeeID <= 0{
-		return errors.New("EmployeeID can't be less than 0")
+		return errors.New("EmployeeID must be a positive number")
 	}
+
 	
 	switch r.LeaveType{
-	case "ANNUAL", "SICK", "UNPAID":
+	case LeaveTypeAnnual, LeaveTypeSick, LeaveTypeUnpaid:
 		// Do nothing
 	default:
-		return errors.New("invalid leave type: must be annual, sick or unpaid")
+		return fmt.Errorf("invalid leave type: must be %s, %s or %s",LeaveTypeAnnual,LeaveTypeSick, LeaveTypeUnpaid)
 	}
 	start, err := time.Parse(dateLayout,r.StartDate)
 	// I wasn't sure which convention to use for year-date
 	if err!=nil{
-		return errors.New("invalid start_date format, expected YYYY-MM-DD")
+		return fmt.Errorf("invalid leave type: %s",r.LeaveType)
 	}
 	end, err := time.Parse(dateLayout,r.EndDate)
 	if err!=nil{

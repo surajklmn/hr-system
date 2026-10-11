@@ -55,10 +55,10 @@ func (repo *Repository) GetByID(ctx context.Context, id int64)(*LeaveRequest, er
 	return &leave, nil
 }
 
-func (repo *Repository) UpdateStatus(ctx context.Context, id int64, status string, updatedAt time.Time) error{
-	query := `UPDATE leave_requests SET status = ?, updated_at = ? WHERE id = ?`
+func (repo *Repository) UpdateStatus(ctx context.Context, id int64, fromStatus, toStatus Status, updatedAt time.Time) error{
+	query := `UPDATE leave_requests SET status = ?, updated_at = ? WHERE id = ? AND status = ?`
 
-	result, err := repo.db.ExecContext(ctx, query, status, updatedAt, id)
+	result, err := repo.db.ExecContext(ctx, query, toStatus, updatedAt, id, fromStatus)
 	if err != nil{
 		return err
 	}
@@ -69,8 +69,15 @@ func (repo *Repository) UpdateStatus(ctx context.Context, id int64, status strin
 		return err
 	}
 
-	// It returns 0 if now rows were affected that mean the row doesn't exists
+	// If id doesn't exists or the status wasn't fromStatus
 	if rows == 0{
+		existing, err := repo.GetByID(ctx, id)
+		if err != nil{
+			return err
+		}
+		if existing.Status != fromStatus {
+			return ErrInvalidStatusTransition
+		}
 		return ErrNotFound
 	}
 

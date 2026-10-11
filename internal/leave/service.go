@@ -68,18 +68,18 @@ func (s *Service) Approve(ctx context.Context, id int64)(*LeaveRequest, error){
 	}
 
 	// check if the leave status is pending, this is just a rule, a leave's status must be pending to be approved
-	if leave.Status != "PENDING"{
+	if !leave.Status.CanTransitionTo(StatusApproved){
 		return nil, ErrInvalidStatusTransition
 	}
 // Update status in DB
 	now := time.Now().UTC()
-	err = s.repo.UpdateStatus(ctx, id, "APPROVED",now)
+	err = s.repo.UpdateStatus(ctx, id,StatusPending,StatusApproved,now)
 	if err != nil{
 		return nil, err
 	}
 
 	// Update the stuct which is in memory
-	leave.Status = "APPROVED"
+	leave.Status = StatusApproved
 	leave.UpdatedAt = now
 	return leave, nil
 }
@@ -90,18 +90,18 @@ func (s *Service) Reject (ctx context.Context, id int64)(*LeaveRequest, error){
 		return nil, err
 	}
 // If the current leave status is other than pending than we abort
-	if leave.Status != "PENDING"{
+	if leave.Status.CanTransitionTo(StatusRejected){
 		return nil, ErrInvalidStatusTransition
 	}
 
 	// Thought about using the local timezone, but it can be a bad thing to code local time zone in server side.
 	now := time.Now().UTC()
-	err = s.repo.UpdateStatus(ctx, id, "REJECTED",now)
+	err = s.repo.UpdateStatus(ctx, id, StatusPending,StatusRejected,now)
 	if err != nil{
 		return nil, err
 	}
 
-	leave.Status = "REJECTED"
+	leave.Status = StatusRejected
 	leave.UpdatedAt = now
 	return leave, nil
 }
