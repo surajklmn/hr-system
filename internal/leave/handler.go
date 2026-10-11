@@ -2,9 +2,11 @@ package leave
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
-	"errors"
+
+	"github.com/surajklmn/hr-system/internal/middleware"
 )
 
 type Handler struct{
@@ -153,8 +155,10 @@ func (h *Handler) Reject (w http.ResponseWriter, r *http.Request){
 func (h *Handler) RegisterRoutes(mux *http.ServeMux){
 	mux.HandleFunc("POST /api/v1/leaves",h.Create)
 	mux.HandleFunc("GET /api/v1/leaves/{id}",h.GetByID)
-	mux.HandleFunc("POST /api/v1/leaves/{id}/approve",h.Approve)
-	mux.HandleFunc("POST /api/v1/leaves/{id}/reject",h.Reject)
+
+	// Use mux.Handle for middlerware, mux.HandleFunc for raw functions
+	mux.Handle("POST /api/v1/leaves/{id}/approve",middleware.RequireRole("admin","manager")(http.HandlerFunc(h.Approve)))
+	mux.Handle("POST /api/v1/leaves/{id}/reject",middleware.RequireRole("admin","manager")(http.HandlerFunc(h.Reject)))
 }
 
 

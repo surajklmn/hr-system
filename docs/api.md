@@ -20,6 +20,9 @@ curl -i http://localhost:8080/health
 
 ### POST /api/v1/employees
 
+note: Requires Header : X-User-Role: admin.
+`eg, -H "X-User-Role:admin"`
+
 Create a new employee record
 
 #### Request Headers:
@@ -38,6 +41,7 @@ role    string  No      "employee"  Allowed: admin, manager, employee
 ```bash
 curl -i -X POST http://localhost:8080/api/v1/employees \
 -H "Content-Type: application/json" \
+-H "X-User-Role:admin" \
 -d '{
         "name":"Ram Bahadur",
         "email":"ram@honda.com",
@@ -59,10 +63,12 @@ curl -i -X POST http://localhost:8080/api/v1/employees \
         "updated_at":"2026-10-10T12:19:23.818904766Z"
     }
 ```
+TODO:
+ [] Add example request and response
 - 400 Bad Request: Valiation error(e.g. missing name, invalid email format, or unauthorized role.
- [] Add example request and response
+- 401 Unauthorized: missing `X-User-Role` header.
+- 403 Forbidden: insufficient permissions.
 - 500 Internal Server Error: Database write failure.
- [] Add example request and response
 
 ### Get /api/v1/employees/{id}
 Fetches an employee profile by their id
@@ -173,6 +179,9 @@ id       |integer(int64) | Yes      | Leave requests's PK ID
 
 
 ### POST /api/v1/leaves/{id}/approve
+note: Requires Header: X-User-Role: admin or manager
+eg: `-H "X-User-Role:admin"`
+eg: `-H "X-User-Role:manager"`
 Approves a pending leave request.
 
 ### URL Parameters:
@@ -180,21 +189,26 @@ Paramter | Type          | Required | Description
 id       |integer(int64) | Yes      | Leave requests's PK ID
 
 #### Examples Request:
-`curl -i -X POST http://localhost:8080/api/v1/leaves/1/approve`
+`curl -i -X POST http://localhost:8080/api/v1/leaves/1/approve -H "X-User-Role:manager"`
 
 #### Responses:
 - 200 OK: Returns leave with "status":"APPROVED".
+- 401 Unauthorized: missing `X-User-Role` header.
+- 403 Forbidden: insufficient permissions.
 - 404 Not Found: Leave request not found.
 - 409 Conflict: Leave request is not in PENDING status.
 
-#### POST /api/v1/leaves/{id}/reject
+### POST /api/v1/leaves/{id}/reject
+note: Requires Header : `X-User-Role:admin` or `X-User-Role:manager`
 Rejects a pending leave request.
 
 #### Example Request:
-`curl -i -X POST http://localhost:8080/api/v1/leaves/1/reject`
+`curl -i -X POST http://localhost:8080/api/v1/leaves/1/reject -H "X-User-Role:manager"`
 
 #### Responses:
 - 200 OK: Returns leave with `"status":"REJECTED"`.
+- 401 Unauthorized: missing `X-User-Role` header.
+- 403 Forbidden: insufficient permissions.
 - 404 Not Found: leave request not found.
 - 409 Conflict: leave request is not in PENDING status.
 

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-"strconv"
+	"strconv"
+
+	"github.com/surajklmn/hr-system/internal/middleware"
 )
 
 type Handler struct{
@@ -79,6 +81,7 @@ func (h *Handler)GetByID(w http.ResponseWriter, r *http.Request){
 
 // to make our life easier, so we don't have to write this in main.go
 func (h *Handler) RegisterRoutes(mux *http.ServeMux){
-	mux.HandleFunc("POST /api/v1/employees",h.Create)
+	// Only admin can create an entry for employees
+	mux.Handle("POST /api/v1/employees",middleware.RequireRole("admin")(http.HandlerFunc(h.Create)))
 	mux.HandleFunc("GET /api/v1/employees/{id}",h.GetByID)
 }

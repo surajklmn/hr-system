@@ -13,3 +13,7 @@
 - `leave` package is forbiddine from quering the employees table direclty.
 - As there's no foreign key, `leave_requests` table can exist on its own.
 - `leave_requests` and `employees` table talk through Go interfaces, as these modules might be split into separate services.
+
+## 4. Role-Based Access
+- Authorization uses the `X-User-Role` HTTP header (`admin, manager, employee`)
+- Request should containt the `X-User-Role` header
