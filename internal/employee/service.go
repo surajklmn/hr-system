@@ -25,7 +25,6 @@ func (s *Service) Create(ctx context.Context,req CreateEmployeeRequest)(emp *Emp
 	if req.Role == "" {
 		req.Role = "employee"
 	}
-
 	now := time.Now().UTC()
 
 	// create an instance of struct with values that we want to set

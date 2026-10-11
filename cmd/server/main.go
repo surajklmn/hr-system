@@ -8,6 +8,7 @@ import (
 	"os"
 	"github.com/surajklmn/hr-system/internal/database"
 	"github.com/surajklmn/hr-system/internal/employee"
+	"github.com/surajklmn/hr-system/internal/leave"
 )
 
 func health(w http.ResponseWriter, r *http.Request){
@@ -45,8 +46,14 @@ func main(){
 	empRepo := employee.NewRepository(db)
 	empService := employee.NewService(empRepo)
 	empHandler := employee.NewHandler(empService)
-
 	empHandler.RegisterRoutes(mux)
+
+// Wire leave moduel
+	leaveRepo := leave.NewRepository(db)
+
+	leaveService := leave.NewService(leaveRepo, empService)
+	leaveHandler := leave.NewHandler(leaveService)
+	leaveHandler.RegisterRoutes(mux)
 
 	mux.HandleFunc("GET /health",health)
 

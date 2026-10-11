@@ -96,10 +96,107 @@ id        |integer(int64)        | Yes                | empoyee's PK ID
 - 400 Bad Request: Malformed ID (e.g /api/v1/employees/asdf).
 - 404 Not Found: No employee found with the given ID.
 
+## 3. Leave Module
+
+### POST /api/v1/leaves
+Submit a new leave request
+
+#### Request Headers:
+- Content-Type: application/json
+
+#### Request Body Parameters:
+
+Field | Type               |Required  | Descriptong
+employee_id| integer(int64)|Yes
+leave_type |string         |Yes        |Allowed: ANNUAL,SICK, UNPAID
+start_date |string         |Yes        |Format: YYYY-MM-DD
+end_date   |string         |Yes        |Format: YYYY-MM-DD
+reason     |string         |No         |Optional
+
+#### Example Request:
+```bash
+curl -i -X POST http://localhost:8080/api/v1/leaves \
+-H "Content-Type: application/json" \
+-d '{
+        "employee_id":1,
+        "leave_type":"ANNUAL",
+        "start_date":"2026-11-01",
+        "end_date": "2026-11-05",
+        "reason" : "Vacation"
+    }'
+```
+#### Responses:
+- 201 Created:
+```json
+  {                                                                                         
+      "id": 1,                                                                                
+      "employee_id": 1,                                                                       
+      "leave_type": "ANNUAL",                                                                 
+      "start_date": "2026-11-01",                                                             
+      "end_date": "2026-11-05",                                                               
+      "reason": "Autumn vacation",                                                            
+      "status": "PENDING",                                                                    
+      "created_at": "2026-10-11T04:12:18.471415449Z",                                         
+      "updated_at": "2026-10-11T04:12:18.471415449Z"                                          
+    } ```                                                                                        
+- 400 Bad Request: Validation error(e.g invalid date format, end_date before start_date, invalid leave_type).
+- 404 Not Found: Employee doesn't exist.
+
+### GET /api/v1/leaves/{id}
+
+Fetches a leave request by its ID
+
+#### URL Parameters:
+
+Paramter | Type          | Required | Description
+id       |integer(int64) | Yes      | Leave requests's PK ID
 
 
+#### Example Request:
+`curl -i http://localhost:8080/api/v1/leaves/1`
+
+- 200 OK:
+```json
+
+{"id":1,
+"employee_id":1,
+"leave_type":"ANNUAL",
+"start_date":"2026-11-01",
+"end_date":"2026-11-05",
+"reason":"Vacation",
+"status":"PENDING",
+"created_at":"2026-10-11T04:12:18.471415449Z",
+"updated_at":"2026-10-11T04:45:38.183375704Z"}
+```
+- 400 Bad Request: invalid ID(e.g /api/v1/leaves/abc)
+- 404 Not Found: Leave request not found.
 
 
+### POST /api/v1/leaves/{id}/approve
+Approves a pending leave request.
+
+### URL Parameters:
+Paramter | Type          | Required | Description
+id       |integer(int64) | Yes      | Leave requests's PK ID
+
+#### Examples Request:
+`curl -i -X POST http://localhost:8080/api/v1/leaves/1/approve`
+
+#### Responses:
+- 200 OK: Returns leave with "status":"APPROVED".
+- 404 Not Found: Leave request not found.
+- 409 Conflict: Leave request is not in PENDING status.
+
+#### POST /api/v1/leaves/{id}/reject
+Rejects a pending leave request.
+
+#### Example Request:
+`curl -i -X POST http://localhost:8080/api/v1/leaves/1/reject`
+
+#### Responses:
+- 200 OK: Returns leave with `"status":"REJECTED"`.
+- 404 Not Found: leave request not found.
+- 409 Conflict: leave request is not in PENDING status.
 
 
 ## Planned / Future Endpoints
@@ -107,5 +204,8 @@ id        |integer(int64)        | Yes                | empoyee's PK ID
 - `GET /api/v1/employees`: List employees with pagination
 - `DELETE /api/v1/employees/{id}`: Delete employee by ID, it is a soft delete, `status = 'INACTIVE'`
 - `PUT /api/v1/employees/{id}`: Update employee details(department, role)
+- `GET /api/v1/leaves?employee_id={id}`: List allleaves for a specific employee.
+- Leave Balance Deduction: Track employee balance and deduct days on approval.
+- Detect overlapping leaves and return 409 Conflict
 
 

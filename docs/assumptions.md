@@ -1,0 +1,15 @@
+# This document documents the assumptions i have made when designing the API
+
+## 1. Timezone Standards
+- All timestamps are generated and stored in UTC using `time.Now().UTC()`
+- This avoids server side locality bugs and Daylight Saving Time anomalies. Timezone localization is the responsibility of frontend client applications.
+
+## 2. Leave lifecycle
+
+- All newly created leave requests begin in `PENDING` state.
+- Once a leave is marked `APPROVED` or `REJECTED`, its state is final and immuateable. Any attemp to change change the state returns `409 Conflict`
+
+## 3. Modular Boundary
+- `leave` package is forbiddine from quering the employees table direclty.
+- As there's no foreign key, `leave_requests` table can exist on its own.
+- `leave_requests` and `employees` table talk through Go interfaces, as these modules might be split into separate services.

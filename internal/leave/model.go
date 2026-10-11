@@ -20,7 +20,7 @@ type LeaveRequest struct{
 
 
 type CreateLeaveRequest struct{
-	EmployeeId int64`json:"employee_id"`
+	EmployeeID int64`json:"employee_id"`
 	LeaveType  string `json:"leave_type"`
 	StartDate  string `json:"start_date"`
 	EndDate string `json:"end_date"`
@@ -28,7 +28,7 @@ type CreateLeaveRequest struct{
 }
 
 func(r *CreateLeaveRequest) Validate() error{
-	if r.EmployeeId <= 0{
+	if r.EmployeeID <= 0{
 		return errors.New("EmployeeID can't be less than 0")
 	}
 	

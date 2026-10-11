@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
+"strconv"
 )
 
 type Handler struct{
-	service *Service
+service *Service
 }
 
 func NewHandler(service *Service) *Handler{
@@ -27,7 +27,7 @@ func (h *Handler) Create(w http.ResponseWriter,r *http.Request){
 	}
 	createdEmp, err := h.service.Create(r.Context(), req)
 	if err != nil{
-		http.Error(w, err.Error(),http.StatusBadRequest)
+	http.Error(w, err.Error(),http.StatusBadRequest)
 		// return right after error
 		return
 	}

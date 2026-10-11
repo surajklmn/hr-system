@@ -4,6 +4,7 @@ import(
 	"database/sql"
 	"errors"
 	"context"
+	"time"
 )
 
 var ErrNotFound = errors.New("leave request not found")
@@ -53,3 +54,26 @@ func (repo *Repository) GetByID(ctx context.Context, id int64)(*LeaveRequest, er
 
 	return &leave, nil
 }
+
+func (repo *Repository) UpdateStatus(ctx context.Context, id int64, status string, updatedAt time.Time) error{
+	query := `UPDATE leave_requests SET status = ?, updated_at = ? WHERE id = ?`
+
+	result, err := repo.db.ExecContext(ctx, query, status, updatedAt, id)
+	if err != nil{
+		return err
+	}
+
+	// Returns the rows affected by an update
+	rows, err := result.RowsAffected()
+	if err != nil{
+		return err
+	}
+
+	// It returns 0 if now rows were affected that mean the row doesn't exists
+	if rows == 0{
+		return ErrNotFound
+	}
+
+	return nil
+}
+
