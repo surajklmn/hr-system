@@ -20,6 +20,7 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateEmployeeRequest
 	// Decode the json into GO struct, in memory
+	r.Body = http.MaxBytesReader(w,r.Body,1024*1024)
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		// 400 bad request

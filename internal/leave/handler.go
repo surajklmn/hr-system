@@ -23,11 +23,11 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	// Store the leaveReuqest fileds later
 	var req CreateLeaveRequest
 	// Decode the incomding json stream into go struct
+	r.Body = http.MaxBytesReader(w,r.Body, 1024*1024)
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		// 400 bad request
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		// return if the decoding fails
 		return
 	}
 
