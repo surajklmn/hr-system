@@ -17,3 +17,4 @@
 ## 4. Role-Based Access
 - Authorization uses the `X-User-Role` HTTP header (`admin, manager, employee`)
 - Request should containt the `X-User-Role` header
+- This keeps the project minimal without adding third-party auth dependencies

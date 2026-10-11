@@ -1,0 +1,4 @@
+.git
+hr.db*
+.env
+/server
