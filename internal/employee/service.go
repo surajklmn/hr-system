@@ -55,10 +55,10 @@ func (s *Service) GetByID(ctx context.Context, id int64) (*Employee, error) {
 
 // Method to check if the employee's entry already exists or not
 func (s *Service) Exists(ctx context.Context, id int64) (bool, error) {
-	_, err := s.GetByID(ctx, id)
+	emp, err := s.GetByID(ctx, id)
 	switch {
 	case err == nil:
-		return true, nil
+		return emp.Status == StatusActive, nil
 	case errors.Is(err, ErrNotFound):
 		return false, nil
 	default:
