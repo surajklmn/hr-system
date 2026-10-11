@@ -46,7 +46,7 @@ func (s *Service) Create(ctx context.Context, req CreateLeaveRequest) (*LeaveReq
 		StartDate: req.StartDate,
 		EndDate: req.EndDate,
 		Reason: req.Reason,
-		Status: "PENDING",
+		Status: StatusPending,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -90,7 +90,7 @@ func (s *Service) Reject (ctx context.Context, id int64)(*LeaveRequest, error){
 		return nil, err
 	}
 // If the current leave status is other than pending than we abort
-	if leave.Status.CanTransitionTo(StatusRejected){
+	if !leave.Status.CanTransitionTo(StatusRejected){
 		return nil, ErrInvalidStatusTransition
 	}
 

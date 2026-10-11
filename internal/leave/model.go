@@ -81,7 +81,7 @@ func(r *CreateLeaveRequest) Validate() error{
 	start, err := time.Parse(dateLayout,r.StartDate)
 	// I wasn't sure which convention to use for year-date
 	if err!=nil{
-		return fmt.Errorf("invalid leave type: %s",r.LeaveType)
+		return fmt.Errorf("invalid start date format, expected YYYY-MM-DD")
 	}
 	end, err := time.Parse(dateLayout,r.EndDate)
 	if err!=nil{
