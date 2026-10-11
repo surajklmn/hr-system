@@ -1,68 +1,65 @@
 package employee
 
 import (
-"testing"
+	"testing"
 )
 
-func TestValidate(t *testing.T){
-	tests := []struct{
-	name string
-	req CreateEmployeeRequest
-	expectErr bool
-}{{
-	name:"valid employee",
-	req: CreateEmployeeRequest{
-		Name:"Ram Bahadur",
-		Email:"ram@honda.com",
-		Department: "Sales",
-		Role:"manager",
+func TestValidate(t *testing.T) {
+	tests := []struct {
+		name      string
+		req       CreateEmployeeRequest
+		expectErr bool
+	}{{
+		name: "valid employee",
+		req: CreateEmployeeRequest{
+			Name:       "Ram Bahadur",
+			Email:      "ram@honda.com",
+			Department: "Sales",
+			Role:       "manager",
+		},
+		expectErr: false,
 	},
-	expectErr: false,
-},
-{
-	name: "missing name",
-	req: CreateEmployeeRequest{
-		Name:"", 
-		Email:"ram@honda.com",
-		Department:"Sales",
-		Role: "manager",
-	},
-	expectErr: true, // We expect an error if name is missing
-},
-{
-	name:"invalid email format",
-	req: CreateEmployeeRequest{
-		Name:"Ram Bahadur", 
-		Email:"bad-email",
-		Department:"Sales",
-		Role:"manager",
-	},
-	expectErr : true,
+		{
+			name: "missing name",
+			req: CreateEmployeeRequest{
+				Name:       "",
+				Email:      "ram@honda.com",
+				Department: "Sales",
+				Role:       "manager",
+			},
+			expectErr: true, // We expect an error if name is missing
+		},
+		{
+			name: "invalid email format",
+			req: CreateEmployeeRequest{
+				Name:       "Ram Bahadur",
+				Email:      "bad-email",
+				Department: "Sales",
+				Role:       "manager",
+			},
+			expectErr: true,
+		},
+		{
+			name: "unauthorized role",
+			req: CreateEmployeeRequest{
+				Name:       "Ram Bahadur",
+				Email:      "ram@honda.com",
+				Department: "Sales",
+				Role:       "superhero",
+			},
+			expectErr: true,
+		}}
 
-},
-{
-	name: "unauthorized role",
-	req: CreateEmployeeRequest{
-		Name: "Ram Bahadur", 
-		Email:"ram@honda.com",
-		Department:"Sales", 
-		Role:"superhero",
-	},
-	expectErr: true,
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.req.Validate()
 
-}}
-
-
-for _, tt := range tests{
-	t.Run(tt.name, func(t *testing.T){
-		err := tt.req.Validate()
-
-		if tt.expectErr && err == nil{
-			t.Errorf("expected an error, but got nil")
-		}
-		if !tt.expectErr && err != nil {
-			t.Errorf("expected no error, but got: %v",err)
-		}
-	})
-}
+			if tt.expectErr && err == nil {
+				t.Errorf("expected an error, but got nil")
+			}
+			if !tt.expectErr && err != nil {
+				t.Errorf("expected no error, but got: %v", err)
+			}
+		})
+	}
 }

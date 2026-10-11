@@ -3,10 +3,11 @@ package database
 
 import (
 	"database/sql"
+	_ "embed"
 	"fmt"
-	_"embed" 
-	_"modernc.org/sqlite"
+	_ "modernc.org/sqlite"
 )
+
 // This looks like a comment, but there's no  space after // so the compiler treats it as the command itself.
 //go:embed schema.sql
 
@@ -15,23 +16,22 @@ var schemaSQL string
 
 // Open establishes a connection to the SQLite database at the specified path, dbPath in this case.
 // verifies the connection via ping, and executes the intial schema DDL.
-func Open(dbPath string) (*sql.DB, error){
+func Open(dbPath string) (*sql.DB, error) {
 
-	db, err := sql.Open("sqlite",dbPath) // This is use to open a connection to the database pool
-	if err != nil{
+	db, err := sql.Open("sqlite", dbPath) // This is use to open a connection to the database pool
+	if err != nil {
 		return nil, err
 	}
 
-
-// prevent db lock error
+	// prevent db lock error
 	db.SetMaxOpenConns(1)
 
-	//defer db.Close() 
+	//defer db.Close()
 	// This will close the connection  after the function returns
 	// Doing defer in the function that opens it causes the function to close the database before returning, bad thing to do.
-	err = db.Ping()
 
-	if err != nil{
+	err = db.Ping()
+	if err != nil {
 		db.Close()
 		return nil, err
 	}
@@ -42,15 +42,15 @@ func Open(dbPath string) (*sql.DB, error){
 		"PRAGMA foreign_keys = ON;",
 	}
 
-	for _, pragma := range pragmas{
+	for _, pragma := range pragmas {
 		if _, err := db.Exec(pragma); err != nil {
-			return nil, fmt.Errorf("failed to execute %s: %w",pragma,err)
+			return nil, fmt.Errorf("failed to execute %s: %w", pragma, err)
 		}
 	}
-// Execute the embedded SQL, embeding is done during compile time not runtime
-	if _, err := db.Exec(schemaSQL); err != nil{
+	// Execute the embedded SQL, embeding is done during compile time not runtime
+	if _, err := db.Exec(schemaSQL); err != nil {
 		db.Close()
-		return nil, fmt.Errorf("failed to execute schema DDL: %w",err)
+		return nil, fmt.Errorf("failed to execute schema DDL: %w", err)
 	}
 	return db, err
 }
