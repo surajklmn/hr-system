@@ -63,11 +63,10 @@ curl -i -X POST http://localhost:8080/api/v1/employees \
         "updated_at":"2026-10-10T12:19:23.818904766Z"
     }
 ```
-TODO:
- [] Add example request and response
 - 400 Bad Request: Valiation error(e.g. missing name, invalid email format, or unauthorized role.
 - 401 Unauthorized: missing `X-User-Role` header.
 - 403 Forbidden: insufficient permissions.
+- 409 Conflict: email already exists.
 - 500 Internal Server Error: Database write failure.
 
 ### Get /api/v1/employees/{id}
@@ -134,17 +133,16 @@ curl -i -X POST http://localhost:8080/api/v1/leaves \
 #### Responses:
 - 201 Created:
 ```json
-  {                                                                                         
-      "id": 1,                                                                                
-      "employee_id": 1,                                                                       
-      "leave_type": "ANNUAL",                                                                 
-      "start_date": "2026-11-01",                                                             
-      "end_date": "2026-11-05",                                                               
-      "reason": "Autumn vacation",                                                            
-      "status": "PENDING",                                                                    
-      "created_at": "2026-10-11T04:12:18.471415449Z",                                         
-      "updated_at": "2026-10-11T04:12:18.471415449Z"                                          
-    } ```                                                                                        
+{"id": 1, 
+"employee_id": 1,
+"leave_type": "ANNUAL",
+"start_date": "2026-11-01",
+"end_date": "2026-11-05",
+"reason": "Autumn vacation",
+"created_at": "2026-10-11T04:12:18.471415449Z",                     
+"updated_at": "2026-10-11T04:12:18.471415449Z"}
+```
+
 - 400 Bad Request: Validation error(e.g invalid date format, end_date before start_date, invalid leave_type).
 - 404 Not Found: Employee doesn't exist.
 
@@ -162,6 +160,7 @@ id       |integer(int64) | Yes      | Leave requests's PK ID
 `curl -i http://localhost:8080/api/v1/leaves/1`
 
 - 200 OK:
+
 ```json
 
 {"id":1,
@@ -174,6 +173,7 @@ id       |integer(int64) | Yes      | Leave requests's PK ID
 "created_at":"2026-10-11T04:12:18.471415449Z",
 "updated_at":"2026-10-11T04:45:38.183375704Z"}
 ```
+
 - 400 Bad Request: invalid ID(e.g /api/v1/leaves/abc)
 - 404 Not Found: Leave request not found.
 

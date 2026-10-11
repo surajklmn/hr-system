@@ -54,9 +54,9 @@ To use custom port:
 
 `go test -v ./...`
 
-## Examples
+## 2. Examples
 
-1. Create and employee
+1. Create an employee
 ```bash
 curl -i -X POST http://localhost:8080/api/v1/employees \
 -H "Content-Type:application/json" \
@@ -75,8 +75,50 @@ curl -i -X POST http://localhost:8080/api/v1/leaves \
 curl -i -X POST http://localhost:8080/api/v1/leaves/1/approve \
 -H "X-User-Role:manager"
 ```
+# 3. End-to-End User Flow
 
-## Docs
+### Step 1: Admin adds a new Employee
+```bash
+curl -i -X POST http://localhost:8080/api/v1/employees \
+-H "Content-Type: application/json" \
+-H "X-User-Role: admin" \
+-d '{
+        "name":"Ram Bahadur",
+        "email":"ram@honda.com",
+        "department":"Sales",
+        "role":"employee"
+    }'
+```
+Returns `201 Created` with employee `id:1` and `status:"ACTIVE"`
+
+### Step 2: Employee queries their profiles
+`curl -i http://localhost:8080/api/v1/employees/1`
+
+Returns `200 Ok` with profile details.
+
+### Step 3: Employee submits a leave request
+```bash
+curl -i -X POST http://localhost:8080/api/v1/leaves \
+-H "Content-Type:application/json" \
+-d '{
+        "employee_id":1,
+        "leave_type":"ANNUAL",
+        "start_date":"2026-11-01",
+        "end_date":"2026-11-05",
+        "reason":"Vacation"
+    }'
+```
+Creates a leave request with `status:"PENDING"`.
+
+### Step 4: Manager approves the leave request
+
+```bash
+curl -i -X POST http://localhost:8080/api/v1/leaves/1/approve \
+-H "X-User-Role: manager"
+```
+
+
+# 4.Docs
 
 - API Documentation [docs/api.md](./docs/api.md)
 - Database Schema [docs/schema.md](./docs/schema.md)
