@@ -30,7 +30,7 @@ func TestValidate(t *testing.T) {
 			expectErr: true, // We expect an error if name is missing
 		},
 		{
-			name: "invalid email format",
+			name: "invalid email format missing @ and domain",
 			req: CreateEmployeeRequest{
 				Name:       "Ram Bahadur",
 				Email:      "bad-email",
@@ -40,6 +40,37 @@ func TestValidate(t *testing.T) {
 			expectErr: true,
 		},
 		{
+			name: "invalid email format missing domain",
+			req: CreateEmployeeRequest{
+				Name:       "Ram Bahadur",
+				Email:      "foo@",
+				Department: "Sales",
+				Role:       "manager",
+			},
+			expectErr: true,
+		},
+		{
+			name: "invalid email format @example.com",
+			req: CreateEmployeeRequest{
+				Name:       "Ram Bahadur",
+				Email:      "@example.com",
+				Department: "Sales",
+				Role:       "manager",
+			},
+			expectErr: true,
+		},
+		{
+			name: "valid email address",
+			req: CreateEmployeeRequest{
+				Name:       "Ram Bahadur",
+				Email:      "foo@bar.com",
+				Department: "Sales",
+				Role:       "manager",
+			},
+			expectErr: false,
+		},	
+		{
+
 			name: "unauthorized role",
 			req: CreateEmployeeRequest{
 				Name:       "Ram Bahadur",
@@ -48,7 +79,8 @@ func TestValidate(t *testing.T) {
 				Role:       "superhero",
 			},
 			expectErr: true,
-		}}
+		},
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

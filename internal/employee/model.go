@@ -53,12 +53,11 @@ func (r *CreateEmployeeRequest) Validate() error {
 		return errors.New("email is required")
 	}
 
-	if !strings.Contains(r.Email, "@") {
-		_, err := mail.ParseAddress(r.Email)
-		if err != nil {
+		addr, err := mail.ParseAddress(r.Email)
+		if err != nil || addr.Address != r.Email {
 			return errors.New("invalid email address")
 		}
-	}
+	
 
 	r.Department = strings.TrimSpace(r.Department)
 	if r.Department == "" {
