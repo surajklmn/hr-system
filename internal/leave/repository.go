@@ -79,7 +79,6 @@ func (repo *Repository) UpdateStatus(ctx context.Context, id int64, fromStatus, 
 		if existing.Status != fromStatus {
 			return ErrInvalidStatusTransition
 		}
-		return ErrNotFound
 	}
 
 	return nil
