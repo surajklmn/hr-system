@@ -59,11 +59,11 @@ curl -i -X POST http://localhost:8080/api/v1/employees \
         "email":"ram@honda.com",
         "department":"Sales",
         "role":"manager",
-        "created_at":"2026-10-10T12:19:23.818904766Z"
+        "created_at":"2026-10-10T12:19:23.818904766Z",
         "updated_at":"2026-10-10T12:19:23.818904766Z"
     }
 ```
-- 400 Bad Request: Valiation error(e.g. missing name, invalid email format, or unauthorized role.
+- 400 Bad Request: Validation error(e.g. missing name, invalid email format, or unauthorized role.
 - 401 Unauthorized: missing `X-User-Role` header.
 - 403 Forbidden: insufficient permissions.
 - 409 Conflict: email already exists.

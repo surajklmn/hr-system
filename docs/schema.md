@@ -1,5 +1,5 @@
 # Database Schema Documentation
-This project uses SQLite as a database, as i thought it was the based option for running on my pc and it requires no setup for reviewers.
+This project uses SQLite as a database, as it provides self-contained, zero-configuration setup for running locally 
 
 ## Database Engine
 * **Engine** : SQLITE 3(`modernc.org/sqlite`)

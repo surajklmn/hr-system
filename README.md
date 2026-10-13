@@ -28,14 +28,17 @@ docker run -d -p 8080:8080 hr-system
 ```
 
 #### Run with database persistence:
-We need to mount a volume for that.
+Mount a local directory for database storage so SQLite can create and manager database and WAL files:
 
-`docker run -p 8080:8080 -v $(pwd)/hr.db:/app/hr.db hr-system`
+```bash
+mkdir -p data
+docker run -p 8080:8080 -v $(pwd)/data:/app/data -e DB_PATH=/app/data/hr.db hr-system
+```
 
 
 ### Option 2: Running with GO
 
-- [Go 1.22+](https://go.dev/doc/install)(Install Go)
+- [Go 1.26+](https://go.dev/doc/install)(Install Go)
 
 If you don't want to install docker for some reason, you can just install go
 
