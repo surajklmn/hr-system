@@ -1,6 +1,7 @@
 package employee
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -28,6 +29,26 @@ func TestValidate(t *testing.T) {
 				Role:       "manager",
 			},
 			expectErr: true, // We expect an error if name is missing
+		},
+		{
+			name: "missing email",
+			req: CreateEmployeeRequest{
+				Name:       "Ram Bahadur",
+				Email:      "",
+				Department: "Sales",
+				Role:       "manager",
+			},
+			expectErr: true,
+		},
+		{
+			name: "missing department",
+			req: CreateEmployeeRequest{
+				Name:       "Ram Bahadur",
+				Email:      "ram@honda.com",
+				Department: "",
+				Role:       "manager",
+			},
+			expectErr: true,
 		},
 		{
 			name: "invalid email format missing @ and domain",
@@ -68,7 +89,7 @@ func TestValidate(t *testing.T) {
 				Role:       "manager",
 			},
 			expectErr: false,
-		},	
+		},
 		{
 
 			name: "unauthorized role",
@@ -91,6 +112,9 @@ func TestValidate(t *testing.T) {
 			}
 			if !tt.expectErr && err != nil {
 				t.Errorf("expected no error, but got: %v", err)
+			}
+			if tt.expectErr && !errors.Is(err, ErrValidation) {
+				t.Errorf("expected error to wrap ErrValidation, but got: %v", err)
 			}
 		})
 	}

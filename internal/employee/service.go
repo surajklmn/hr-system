@@ -67,14 +67,14 @@ func (s *Service) Exists(ctx context.Context, id int64) (bool, error) {
 
 }
 
-func (s *Service) IsActive(ctx context.Context, id int64)(bool, error){
+func (s *Service) IsActive(ctx context.Context, id int64) (bool, error) {
 	emp, err := s.GetByID(ctx, id)
 	switch {
 	case err == nil:
 		return emp.Status == StatusActive, nil
 	case errors.Is(err, ErrNotFound):
 		return false, ErrNotFound
-	
+
 	default:
 		return false, err
 	}

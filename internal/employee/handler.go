@@ -3,6 +3,7 @@ package employee
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -17,24 +18,32 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
+func writeError(w http.ResponseWriter, status int, msg string) {
+	http.Error(w, msg, status)
+}
+
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateEmployeeRequest
 	// Decode the json into GO struct, in memory
-	r.Body = http.MaxBytesReader(w,r.Body,1024*1024)
+	r.Body = http.MaxBytesReader(w, r.Body, 1024*1024)
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		// 400 bad request
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, err.Error())
 		// return if the decoding fails
 		return
 	}
 	createdEmp, err := h.service.Create(r.Context(), req)
 	if err != nil {
-		if errors.Is(err, ErrDuplicateEmail) {
-			http.Error(w, err.Error(), http.StatusConflict)
-			return
+		switch {
+		case errors.Is(err, ErrValidation):
+			writeError(w, http.StatusBadRequest, err.Error())
+		case errors.Is(err, ErrDuplicateEmail):
+			writeError(w, http.StatusConflict, err.Error())
+		default:
+			log.Printf("create employee: %v", err)
+			writeError(w, http.StatusInternalServerError, "internal server error")
 		}
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

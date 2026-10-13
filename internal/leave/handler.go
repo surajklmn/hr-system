@@ -3,6 +3,7 @@ package leave
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -18,29 +19,35 @@ func NewHandler(service *Service) *Handler {
 
 }
 
+func writeError(w http.ResponseWriter, status int, msg string) {
+	http.Error(w, msg, status)
+}
+
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	// Store the leaveReuqest fileds later
 	var req CreateLeaveRequest
 	// Decode the incomding json stream into go struct
-	r.Body = http.MaxBytesReader(w,r.Body, 1024*1024)
+	r.Body = http.MaxBytesReader(w, r.Body, 1024*1024)
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		// 400 bad request
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	leave, err := h.service.Create(r.Context(), req)
 
 	if err != nil {
-		if errors.Is(err, ErrEmployeeNotFound) {
-			// 404
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
+		switch {
+		case errors.Is(err, ErrValidation):
+			writeError(w, http.StatusBadRequest, err.Error())
+		case errors.Is(err, ErrEmployeeNotFound):
+			writeError(w, http.StatusNotFound, err.Error())
+		default:
+			log.Printf("create leave: %v", err)
+			writeError(w, http.StatusInternalServerError, "internal server error")
 		}
-		// 400
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

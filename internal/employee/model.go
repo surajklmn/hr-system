@@ -41,27 +41,28 @@ type CreateEmployeeRequest struct {
 	Role       Role   `json:"role"`
 }
 
+var ErrValidation = errors.New("validation failed")
+
 // Validates the required filed while creating and employee request
 
 func (r *CreateEmployeeRequest) Validate() error {
 	r.Name = strings.TrimSpace(r.Name)
 	if r.Name == "" {
-		return errors.New("name is required")
+		return fmt.Errorf("%w: name is required", ErrValidation)
 	}
 	r.Email = strings.TrimSpace(strings.ToLower(r.Email))
 	if r.Email == "" {
-		return errors.New("email is required")
+		return fmt.Errorf("%w: email is required", ErrValidation)
 	}
 
-		addr, err := mail.ParseAddress(r.Email)
-		if err != nil || addr.Address != r.Email {
-			return errors.New("invalid email address")
-		}
-	
+	addr, err := mail.ParseAddress(r.Email)
+	if err != nil || addr.Address != r.Email {
+		return fmt.Errorf("%w: invalid email address", ErrValidation)
+	}
 
 	r.Department = strings.TrimSpace(r.Department)
 	if r.Department == "" {
-		return errors.New("department is required")
+		return fmt.Errorf("%w: department is required", ErrValidation)
 	}
 
 	// switch because too many ifs
@@ -69,7 +70,7 @@ func (r *CreateEmployeeRequest) Validate() error {
 	case "", RoleAdmin, RoleManager, RoleEmployee:
 		// Do nothing
 	default:
-		return fmt.Errorf("invalid role: must be %s, %s, or %s", RoleAdmin, RoleManager, RoleEmployee)
+		return fmt.Errorf("%w: invalid role: must be %s, %s, or %s", ErrValidation, RoleAdmin, RoleManager, RoleEmployee)
 	}
 	return nil
 }

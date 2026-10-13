@@ -65,30 +65,32 @@ type CreateLeaveRequest struct {
 	Reason     string    `json:"reason"`
 }
 
+var ErrValidation = errors.New("validation failed")
+
 func (r *CreateLeaveRequest) Validate() error {
 	if r.EmployeeID <= 0 {
-		return errors.New("EmployeeID must be a positive number")
+		return fmt.Errorf("%w: EmployeeID must be a positive number", ErrValidation)
 	}
 
 	switch r.LeaveType {
 	case LeaveTypeAnnual, LeaveTypeSick, LeaveTypeUnpaid:
 		// Do nothing
 	default:
-		return fmt.Errorf("invalid leave type: must be %s, %s or %s", LeaveTypeAnnual, LeaveTypeSick, LeaveTypeUnpaid)
+		return fmt.Errorf("%w: invalid leave type: must be %s, %s or %s", ErrValidation, LeaveTypeAnnual, LeaveTypeSick, LeaveTypeUnpaid)
 	}
 	start, err := time.Parse(dateLayout, r.StartDate)
 	// I wasn't sure which convention to use for year-date
 	if err != nil {
-		return fmt.Errorf("invalid start date format, expected YYYY-MM-DD")
+		return fmt.Errorf("%w: invalid start date format, expected YYYY-MM-DD", ErrValidation)
 	}
 	end, err := time.Parse(dateLayout, r.EndDate)
 	if err != nil {
-		return errors.New("invalid end_date format, expected YYYY-MM-DD")
+		return fmt.Errorf("%w: invalid end_date format, expected YYYY-MM-DD", ErrValidation)
 	}
 
 	// Before(start) reports if the start time come before the end time
 	if end.Before(start) {
-		return errors.New("end_date cannot be before start_date")
+		return fmt.Errorf("%w: end_date cannot be before start_date", ErrValidation)
 	}
 
 	return nil
