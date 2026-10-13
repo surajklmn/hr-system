@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/surajklmn/hr-system/docs"
 	"github.com/surajklmn/hr-system/internal/database"
 	"github.com/surajklmn/hr-system/internal/employee"
 	"github.com/surajklmn/hr-system/internal/leave"
@@ -55,6 +56,9 @@ func main() {
 	leaveService := leave.NewService(leaveRepo, empService)
 	leaveHandler := leave.NewHandler(leaveService)
 	leaveHandler.RegisterRoutes(mux)
+
+	// Wire documentation routes
+	docs.RegisterRoutes(mux)
 
 	mux.HandleFunc("GET /health", health)
 

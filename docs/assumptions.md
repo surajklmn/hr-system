@@ -14,11 +14,21 @@
 - As there's no foreign key, `leave_requests` table can exist on its own.
 - `leave_requests` and `employees` table talk through Go interfaces, as these modules might be split into separate services.
 
+> Note: New modules such as Payroll or Attendance and interact with `leave` via similar interfaces.
+
 ## 4. Role-Based Access
 - Authorization uses the `X-User-Role` HTTP header (`admin, manager, employee`)
 - Request should contain the `X-User-Role` header.
 - This keeps the project minimal without adding third-party auth dependencies
 
+> Note: In production this evolves into signed JWTs or OAuth2.
+
 ## 5. Security and Resource Protecion
 - Request payload sizes are strictly bounded to 1MB to protect the server from DoS attacks.
 - SQL queries use parameter binding(`?`) across all repositories to prevent SQL injection.
+
+
+## 6. Storage and Database Scalability
+- Uses embed SQLite with WAL for zero-dependency single-node execution.
+
+> Note: To run multiple backends behind a load balancer, migrate to a client-server RDBM(e.g PostgresSQl). Employee directory lookups can be cached via Redis.

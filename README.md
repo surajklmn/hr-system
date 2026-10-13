@@ -16,13 +16,18 @@ The system has two independent packages:
 
 ## Getting Started
 
+### 1. Clone the Repository
+```bash
+git clone https://github.com/surajklmn/hr-system.git
+cd hr-system
+```
 ### Option 1: Running with Docker(Recommended)
-This is the recommened way of running this system, provides consistent environment(it works on my machine though).
+This is the recommened way of running this system, provides consistent environment.
 - [Docker](https://docs.docker.com/get-docker)(Install docker)
 
 #### Build the image
 ```bash
-docker build -t hr-system
+docker build -t hr-system .
 ```
 #### Run the container
 ```bash
@@ -123,12 +128,13 @@ curl -i -X POST http://localhost:8080/api/v1/leaves/1/approve \
 ```
 
 
-# 4.Docs
+# 3.Docs
 
+- **Interactive API Documentation (Swagger UI)**: `http://localhost:8080/docs` (or `/swagger`)
 - OpenAPI Specification [docs/openapi.yaml](./docs/openapi.yaml)
 - API Documentation [docs/api.md](./docs/api.md)
 - Database Schema [docs/schema.md](./docs/schema.md)
-- Design Assumptions [docs/assumptions.md](./docs/assumptions.md)
+- Design Assumptions & Notes [docs/assumptions.md](./docs/assumptions.md)
 
 ### Inspecting the database
 
