@@ -4,6 +4,8 @@ The system has two independent packages:
 - `internal/employee`: manages employee records, roles, and profiles.
 - `internal/leave`: manages leave requests, date validation and approvals.
 
+# Architecture Diagram
+![Architecture Diagram](docs/architecture.png)
 # Design Choices
 - Uses Go 1.22+ standard library router(`net/http.ServeMux`)
 - leave_requests table doesn't reference `employees` directly in SQL. Employee existence is verified by using `EmployeeChecker` interface
@@ -123,9 +125,10 @@ curl -i -X POST http://localhost:8080/api/v1/leaves/1/approve \
 
 # 4.Docs
 
+- OpenAPI Specification [docs/openapi.yaml](./docs/openapi.yaml)
 - API Documentation [docs/api.md](./docs/api.md)
 - Database Schema [docs/schema.md](./docs/schema.md)
-- Desing Assumption [docs/assumptions.md](./docs/assumptions.md)
+- Design Assumptions [docs/assumptions.md](./docs/assumptions.md)
 
 ### Inspecting the database
 
