@@ -1,6 +1,6 @@
 module github.com/surajklmn/hr-system
 
-go 1.27.1
+go 1.26.0
 
 require modernc.org/sqlite v1.60.1
 
