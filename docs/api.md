@@ -2,6 +2,8 @@
 
 Base URL: `http://localhost:8080/api/v1`
 
+Note: successful responses return `application/json`, while error responses return `text/plain`
+
 ## 1. Health Check
 ### `GET /health`
 Return the status of the service
@@ -59,11 +61,12 @@ curl -i -X POST http://localhost:8080/api/v1/employees \
         "email":"ram@honda.com",
         "department":"Sales",
         "role":"manager",
+        "status":"ACTIVE",
         "created_at":"2026-10-10T12:19:23.818904766Z",
         "updated_at":"2026-10-10T12:19:23.818904766Z"
     }
 ```
-- 400 Bad Request: Validation error(e.g. missing name, invalid email format, or unauthorized role.
+- 400 Bad Request: Validation error (e.g. "validation failed: name is required", "validation failed: invalid email address", or "validation failed: invalid role..."), or payload exceeds 1MB limit ("http: request body too large")
 - 401 Unauthorized: missing `X-User-Role` header.
 - 403 Forbidden: insufficient permissions.
 - 409 Conflict: email already exists.
@@ -74,7 +77,7 @@ Fetches an employee profile by their id
 
 #### URL Parameters
 
-Paramater | Type                 | Required           |Description
+Parameter | Type                 | Required           |Description
 id        |integer(int64)        | Yes                | empoyee's PK ID
 
 
@@ -100,6 +103,7 @@ id        |integer(int64)        | Yes                | empoyee's PK ID
 
 - 400 Bad Request: Malformed ID (e.g /api/v1/employees/asdf).
 - 404 Not Found: No employee found with the given ID.
+- 500 Internal Server Error: Database read failure.
 
 ## 3. Leave Module
 
@@ -111,7 +115,7 @@ Submit a new leave request
 
 #### Request Body Parameters:
 
-Field | Type               |Required  | Descriptong
+Field | Type               |Required  | Description
 employee_id| integer(int64)|Yes
 leave_type |string         |Yes        |Allowed: ANNUAL,SICK, UNPAID
 start_date |string         |Yes        |Format: YYYY-MM-DD
@@ -139,12 +143,14 @@ curl -i -X POST http://localhost:8080/api/v1/leaves \
 "start_date": "2026-11-01",
 "end_date": "2026-11-05",
 "reason": "Autumn vacation",
+"status":"PENDING",
 "created_at": "2026-10-11T04:12:18.471415449Z",                     
 "updated_at": "2026-10-11T04:12:18.471415449Z"}
 ```
 
-- 400 Bad Request: Validation error(e.g invalid date format, end_date before start_date, invalid leave_type).
+- 400 Bad Request: Validation error (e.g. "validation failed:EmployeeID must be a positive number", "validation failed: invalid leave type: must be ANNUL, SICK or UNPAID", or "validation failed: invalid start date format, epected YYYY-MM-DD", "validation failed: invalid end_date formate, expected YYYY-MM-DD","validation failed: end_date cannot be before start_date" 
 - 404 Not Found: Employee doesn't exist.
+- 500 Internal Server Error: Database write failure
 
 ### GET /api/v1/leaves/{id}
 
@@ -174,32 +180,37 @@ id       |integer(int64) | Yes      | Leave requests's PK ID
 "updated_at":"2026-10-11T04:45:38.183375704Z"}
 ```
 
-- 400 Bad Request: invalid ID(e.g /api/v1/leaves/abc)
+- 400 Bad Request: Invalid ID format(e.g /api/v1/leaves/abc)
 - 404 Not Found: Leave request not found.
+- 500 Internal Server Error: Database read failure
 
 
 ### POST /api/v1/leaves/{id}/approve
-note: Requires Header: X-User-Role: admin or manager
-eg: `-H "X-User-Role:admin"`
-eg: `-H "X-User-Role:manager"`
+#### Request Headers:
+- X-User-Role: admin or manager
 Approves a pending leave request.
 
 ### URL Parameters:
 Paramter | Type          | Required | Description
 id       |integer(int64) | Yes      | Leave requests's PK ID
 
-#### Examples Request:
+#### Example Request:
 `curl -i -X POST http://localhost:8080/api/v1/leaves/1/approve -H "X-User-Role:manager"`
 
 #### Responses:
 - 200 OK: Returns leave with "status":"APPROVED".
+- 400 Bad Request: Invalid leave id(e.g. /api/v1/leaves/abc/approve)
 - 401 Unauthorized: missing `X-User-Role` header.
 - 403 Forbidden: insufficient permissions.
 - 404 Not Found: Leave request not found.
 - 409 Conflict: Leave request is not in PENDING status.
+- 500 Internal Server Error: Database write failure
 
 ### POST /api/v1/leaves/{id}/reject
-note: Requires Header : `X-User-Role:admin` or `X-User-Role:manager`
+
+#### Request Headers:
+- X-User-Role: admin or manager
+
 Rejects a pending leave request.
 
 #### Example Request:
@@ -207,10 +218,13 @@ Rejects a pending leave request.
 
 #### Responses:
 - 200 OK: Returns leave with `"status":"REJECTED"`.
+- 400 Bad Request: Invalid leave ID format.
 - 401 Unauthorized: missing `X-User-Role` header.
 - 403 Forbidden: insufficient permissions.
 - 404 Not Found: leave request not found.
 - 409 Conflict: leave request is not in PENDING status.
+- 500 Internal Server Error: Database write failure.
+
 
 
 ## Planned / Future Endpoints
@@ -218,7 +232,7 @@ Rejects a pending leave request.
 - `GET /api/v1/employees`: List employees with pagination
 - `DELETE /api/v1/employees/{id}`: Delete employee by ID, it is a soft delete, `status = 'INACTIVE'`
 - `PUT /api/v1/employees/{id}`: Update employee details(department, role)
-- `GET /api/v1/leaves?employee_id={id}`: List allleaves for a specific employee.
+- `GET /api/v1/leaves?employee_id={id}`: List all leaves for a specific employee.
 - Leave Balance Deduction: Track employee balance and deduct days on approval.
 - Detect overlapping leaves and return 409 Conflict
 

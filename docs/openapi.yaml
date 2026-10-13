@@ -1,249 +1,35 @@
 openapi: 3.0.3
 info:
-  title: HR Management System API
+  title: HR System API
   description: |
-    RESTful backend API for managing employee profiles and leave requests.
-    Features role-based access control, SQLite persistence with WAL mode, and modular package architecture.
+    RESTful API for the HR System, managing employee profiles and leave requests.
+    
+    ### Key Characteristics
+    - **Base URL**: `http://localhost:8080` (API routes prefixed with `/api/v1`, `/health` at root)
+    - **Response Formats**: Successful responses return `application/json`, while error responses return `text/plain`.
+    - **Authorization**: Role-based access control via the `X-User-Role` header (`admin`, `manager`, `employee`).
+    - **Request Limits**: JSON request bodies are bounded to a maximum of 1MB (1,048,576 bytes).
+    - **Timestamps**: All timestamps are in UTC (ISO 8601 / RFC 3339 format).
   version: 1.0.0
+
 servers:
   - url: http://localhost:8080
-    description: Local Development Server
-
-components:
-  securitySchemes:
-    UserRoleAuth:
-      type: apiKey
-      in: header
-      name: X-User-Role
-      description: |
-        Case-insensitive role-based authentication header.
-        Allowed roles: `admin`, `manager`, `employee`.
-
-  schemas:
-    Employee:
-      type: object
-      description: Complete employee profile record.
-      required: [id, name, email, department, role, status, created_at, updated_at]
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 1
-        name:
-          type: string
-          example: "Ram Bahadur"
-        email:
-          type: string
-          format: email
-          example: "ram@honda.com"
-        department:
-          type: string
-          example: "Sales"
-        role:
-          type: string
-          enum: [admin, manager, employee]
-          example: "manager"
-        status:
-          type: string
-          enum: [ACTIVE, INACTIVE]
-          example: "ACTIVE"
-        created_at:
-          type: string
-          format: date-time
-          example: "2026-10-10T12:19:23.818904766Z"
-        updated_at:
-          type: string
-          format: date-time
-          example: "2026-10-10T12:19:23.818904766Z"
-
-    CreateEmployeeRequest:
-      type: object
-      description: Payload for registering a new employee.
-      required: [name, email, department]
-      properties:
-        name:
-          type: string
-          example: "Ram Bahadur"
-        email:
-          type: string
-          format: email
-          example: "ram@honda.com"
-        department:
-          type: string
-          example: "Sales"
-        role:
-          type: string
-          enum: [admin, manager, employee]
-          default: employee
-          example: "employee"
-
-    LeaveRequest:
-      type: object
-      description: Complete leave request record.
-      required: [id, employee_id, leave_type, start_date, end_date, status, created_at, updated_at]
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 1
-        employee_id:
-          type: integer
-          format: int64
-          example: 1
-        leave_type:
-          type: string
-          enum: [ANNUAL, SICK, UNPAID]
-          example: "ANNUAL"
-        start_date:
-          type: string
-          format: date
-          example: "2026-11-01"
-        end_date:
-          type: string
-          format: date
-          example: "2026-11-05"
-        reason:
-          type: string
-          example: "Vacation trip"
-        status:
-          type: string
-          enum: [PENDING, APPROVED, REJECTED]
-          example: "PENDING"
-        created_at:
-          type: string
-          format: date-time
-          example: "2026-10-11T04:12:18.471415449Z"
-        updated_at:
-          type: string
-          format: date-time
-          example: "2026-10-11T04:12:18.471415449Z"
-
-    CreateLeaveRequest:
-      type: object
-      description: Payload for submitting a new leave application.
-      required: [employee_id, leave_type, start_date, end_date]
-      properties:
-        employee_id:
-          type: integer
-          format: int64
-          example: 1
-        leave_type:
-          type: string
-          enum: [ANNUAL, SICK, UNPAID]
-          example: "ANNUAL"
-        start_date:
-          type: string
-          format: date
-          example: "2026-11-01"
-        end_date:
-          type: string
-          format: date
-          example: "2026-11-05"
-        reason:
-          type: string
-          example: "Vacation trip"
-
-    HealthStatus:
-      type: object
-      properties:
-        status:
-          type: string
-          example: "ok"
-
-  responses:
-    BadRequestError:
-      description: Bad request due to input validation error, invalid parameters, or payload size exceeded.
-      content:
-        text/plain:
-          schema:
-            type: string
-          examples:
-            missing_name:
-              summary: Missing Name
-              value: "name is required"
-            invalid_email:
-              summary: Invalid Email Format
-              value: "invalid email address"
-            missing_department:
-              summary: Missing Department
-              value: "department is required"
-            invalid_role:
-              summary: Invalid Role
-              value: "invalid role: must be admin, manager, or employee"
-            invalid_dates:
-              summary: End date before start date
-              value: "end_date cannot be before start_date"
-            invalid_id:
-              summary: Malformed ID Parameter
-              value: "invalid employee id"
-            body_too_large:
-              summary: Payload exceeds 1MB limit
-              value: "http: request body too large"
-
-    UnauthorizedError:
-      description: Missing authentication header.
-      content:
-        text/plain:
-          schema:
-            type: string
-          example: "unauthorized: missing X-User-Role header"
-
-    ForbiddenError:
-      description: The provided role does not have authorization for this endpoint.
-      content:
-        text/plain:
-          schema:
-            type: string
-          example: "forbidden: not enough permissions"
-
-    NotFoundError:
-      description: Target resource was not found.
-      content:
-        text/plain:
-          schema:
-            type: string
-          examples:
-            employee_not_found:
-              summary: Employee Not Found
-              value: "employee not found"
-            leave_not_found:
-              summary: Leave Request Not Found
-              value: "leave request not found"
-
-    ConflictError:
-      description: Conflict with existing state (e.g. duplicate email, invalid status transition).
-      content:
-        text/plain:
-          schema:
-            type: string
-          examples:
-            duplicate_email:
-              summary: Duplicate Email
-              value: "email already exists"
-            invalid_transition:
-              summary: Leave Not In Pending Status
-              value: "leave request is not in PENDING status"
-
-    InternalServerError:
-      description: Unhandled server or database error.
-      content:
-        text/plain:
-          schema:
-            type: string
-          example: "internal server error"
+    description: Local development server
 
 paths:
   /health:
     get:
       summary: Health check
-      description: Checks service availability and responsiveness.
+      description: Returns the operational status of the HR System service.
+      operationId: getHealth
+      security: []
       responses:
         "200":
-          description: Service is healthy and responsive.
+          description: Service is healthy and operational.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                $ref: "#/components/schemas/HealthResponse"
               example:
                 status: "ok"
         "500":
@@ -251,33 +37,27 @@ paths:
 
   /api/v1/employees:
     post:
-      summary: Create an employee record
+      summary: Create a new employee
       description: |
-        Registers a new employee.
-        Requires `X-User-Role: admin` header.
-        Request body is restricted to a maximum size of 1MB.
+        Creates a new employee record.
+        
+        Requires the `X-User-Role: admin` header.
+        Request body is bounded to 1MB.
+      operationId: createEmployee
       security:
         - UserRoleAuth: []
       requestBody:
+        description: Employee creation payload
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateEmployeeRequest"
-            examples:
-              with_role:
-                summary: Employee with specific role
-                value:
-                  name: "Ram Bahadur"
-                  email: "ram@honda.com"
-                  department: "Sales"
-                  role: "manager"
-              default_role:
-                summary: Employee with default role (omits role)
-                value:
-                  name: "Hari Bahadur"
-                  email: "hari@bahadurcorp.com"
-                  department: "Engineering"
+            example:
+              name: "Ram Bahadur"
+              email: "ram@honda.com"
+              department: "Sales"
+              role: "manager"
       responses:
         "201":
           description: Employee created successfully.
@@ -295,32 +75,56 @@ paths:
                 created_at: "2026-10-10T12:19:23.818904766Z"
                 updated_at: "2026-10-10T12:19:23.818904766Z"
         "400":
-          $ref: "#/components/responses/BadRequestError"
+          description: Validation error (e.g. missing name, invalid email format, invalid role) or request body exceeds 1MB.
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                missingName:
+                  summary: Missing name
+                  value: "validation failed: name is required"
+                invalidEmail:
+                  summary: Invalid email address
+                  value: "validation failed: invalid email address"
+                invalidRole:
+                  summary: Invalid role
+                  value: "validation failed: invalid role: must be admin, manager, or employee"
+                bodyTooLarge:
+                  summary: Request payload exceeds 1MB limit
+                  value: "http: request body too large"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "403":
           $ref: "#/components/responses/ForbiddenError"
         "409":
-          $ref: "#/components/responses/ConflictError"
+          description: Conflict - email already exists.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "email already exists"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
   /api/v1/employees/{id}:
     get:
-      summary: Get employee profile by ID
-      description: Retrieves employee profile by primary key integer ID.
+      summary: Get employee by ID
+      description: Fetches an employee profile by their primary key ID.
+      operationId: getEmployeeByID
+      security: []
       parameters:
         - name: id
           in: path
           required: true
-          description: Primary key ID of the employee
+          description: Employee primary key ID
           schema:
             type: integer
             format: int64
             example: 1
       responses:
         "200":
-          description: Employee profile found.
+          description: Employee profile retrieved successfully.
           content:
             application/json:
               schema:
@@ -342,7 +146,7 @@ paths:
                 type: string
               example: "invalid employee id"
         "404":
-          description: Employee not found.
+          description: No employee found with the given ID.
           content:
             text/plain:
               schema:
@@ -356,16 +160,21 @@ paths:
       summary: Submit a leave request
       description: |
         Submits a new leave request for an employee.
-        Verifies employee existence via application boundary (`EmployeeChecker`).
-        All newly created leave requests start in `PENDING` status.
+        
+        Validates that the referenced employee exists across the application boundary.
+        New leave requests are initialized in `PENDING` status.
+        Request body is bounded to 1MB.
+      operationId: createLeaveRequest
+      security: []
       requestBody:
+        description: Leave request creation payload
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateLeaveRequest"
             examples:
-              annual_leave:
+              annualLeave:
                 summary: Annual leave with reason
                 value:
                   employee_id: 1
@@ -373,7 +182,7 @@ paths:
                   start_date: "2026-11-01"
                   end_date: "2026-11-05"
                   reason: "Autumn vacation"
-              sick_leave:
+              sickLeave:
                 summary: Sick leave without reason
                 value:
                   employee_id: 1
@@ -382,7 +191,7 @@ paths:
                   end_date: "2026-10-16"
       responses:
         "201":
-          description: Leave request successfully created.
+          description: Leave request created successfully.
           content:
             application/json:
               schema:
@@ -398,9 +207,29 @@ paths:
                 created_at: "2026-10-11T04:12:18.471415449Z"
                 updated_at: "2026-10-11T04:12:18.471415449Z"
         "400":
-          $ref: "#/components/responses/BadRequestError"
+          description: Validation error (e.g. non-positive employee ID, invalid leave type, invalid date format, or end date before start date).
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidEmployeeID:
+                  summary: Non-positive employee ID
+                  value: "validation failed: EmployeeID must be a positive number"
+                invalidLeaveType:
+                  summary: Invalid leave type
+                  value: "validation failed: invalid leave type: must be ANNUAL, SICK or UNPAID"
+                invalidStartDate:
+                  summary: Invalid start date format
+                  value: "validation failed: invalid start date format, expected YYYY-MM-DD"
+                invalidEndDate:
+                  summary: Invalid end date format
+                  value: "validation failed: invalid end_date format, expected YYYY-MM-DD"
+                endBeforeStart:
+                  summary: End date precedes start date
+                  value: "validation failed: end_date cannot be before start_date"
         "404":
-          description: Referenced employee does not exist.
+          description: Employee does not exist.
           content:
             text/plain:
               schema:
@@ -413,11 +242,13 @@ paths:
     get:
       summary: Get leave request by ID
       description: Fetches a leave request by its primary key ID.
+      operationId: getLeaveByID
+      security: []
       parameters:
         - name: id
           in: path
           required: true
-          description: Primary key ID of the leave request
+          description: Leave request primary key ID
           schema:
             type: integer
             format: int64
@@ -429,31 +260,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LeaveRequest"
-              examples:
-                pending_leave:
-                  summary: Pending leave request
-                  value:
-                    id: 1
-                    employee_id: 1
-                    leave_type: "ANNUAL"
-                    start_date: "2026-11-01"
-                    end_date: "2026-11-05"
-                    reason: "Vacation"
-                    status: "PENDING"
-                    created_at: "2026-10-11T04:12:18.471415449Z"
-                    updated_at: "2026-10-11T04:12:18.471415449Z"
-                approved_leave:
-                  summary: Approved leave request
-                  value:
-                    id: 1
-                    employee_id: 1
-                    leave_type: "ANNUAL"
-                    start_date: "2026-11-01"
-                    end_date: "2026-11-05"
-                    reason: "Vacation"
-                    status: "APPROVED"
-                    created_at: "2026-10-11T04:12:18.471415449Z"
-                    updated_at: "2026-10-11T05:00:00.000000000Z"
+              example:
+                id: 1
+                employee_id: 1
+                leave_type: "ANNUAL"
+                start_date: "2026-11-01"
+                end_date: "2026-11-05"
+                reason: "Vacation"
+                status: "PENDING"
+                created_at: "2026-10-11T04:12:18.471415449Z"
+                updated_at: "2026-10-11T04:45:38.183375704Z"
         "400":
           description: Malformed leave ID parameter.
           content:
@@ -475,16 +291,18 @@ paths:
     post:
       summary: Approve a pending leave request
       description: |
-        Transitions a leave request from `PENDING` to `APPROVED`.
-        Only users with `X-User-Role: admin` or `X-User-Role: manager` are authorized.
-        Leaves not in `PENDING` status return `409 Conflict`.
+        Approves a pending leave request, transitioning its status to `APPROVED`.
+        
+        Requires `X-User-Role: admin` or `X-User-Role: manager` header.
+        The leave request must currently be in `PENDING` status; attempting to transition from any other status returns `409 Conflict`.
+      operationId: approveLeave
       security:
         - UserRoleAuth: []
       parameters:
         - name: id
           in: path
           required: true
-          description: Primary key ID of the leave request
+          description: Leave request primary key ID
           schema:
             type: integer
             format: int64
@@ -505,7 +323,7 @@ paths:
                 reason: "Vacation"
                 status: "APPROVED"
                 created_at: "2026-10-11T04:12:18.471415449Z"
-                updated_at: "2026-10-11T05:30:12.123456789Z"
+                updated_at: "2026-10-11T05:00:00.000000000Z"
         "400":
           description: Malformed leave ID parameter.
           content:
@@ -525,7 +343,7 @@ paths:
                 type: string
               example: "leave request not found"
         "409":
-          description: Leave request is not in PENDING status.
+          description: Conflict - leave request is not in PENDING status.
           content:
             text/plain:
               schema:
@@ -538,16 +356,18 @@ paths:
     post:
       summary: Reject a pending leave request
       description: |
-        Transitions a leave request from `PENDING` to `REJECTED`.
-        Only users with `X-User-Role: admin` or `X-User-Role: manager` are authorized.
-        Leaves not in `PENDING` status return `409 Conflict`.
+        Rejects a pending leave request, transitioning its status to `REJECTED`.
+        
+        Requires `X-User-Role: admin` or `X-User-Role: manager` header.
+        The leave request must currently be in `PENDING` status; attempting to transition from any other status returns `409 Conflict`.
+      operationId: rejectLeave
       security:
         - UserRoleAuth: []
       parameters:
         - name: id
           in: path
           required: true
-          description: Primary key ID of the leave request
+          description: Leave request primary key ID
           schema:
             type: integer
             format: int64
@@ -568,7 +388,7 @@ paths:
                 reason: "Vacation"
                 status: "REJECTED"
                 created_at: "2026-10-11T04:12:18.471415449Z"
-                updated_at: "2026-10-11T05:35:44.987654321Z"
+                updated_at: "2026-10-11T05:00:00.000000000Z"
         "400":
           description: Malformed leave ID parameter.
           content:
@@ -588,7 +408,7 @@ paths:
                 type: string
               example: "leave request not found"
         "409":
-          description: Leave request is not in PENDING status.
+          description: Conflict - leave request is not in PENDING status.
           content:
             text/plain:
               schema:
@@ -596,3 +416,246 @@ paths:
               example: "leave request is not in PENDING status"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
+components:
+  securitySchemes:
+    UserRoleAuth:
+      type: apiKey
+      in: header
+      name: X-User-Role
+      description: |
+        Role-based access header.
+        Accepted roles (case-insensitive):
+        - `admin`: Has permission to create employees, approve leaves, and reject leaves.
+        - `manager`: Has permission to approve and reject leaves.
+        - `employee`: Standard role.
+
+  schemas:
+    EmployeeRole:
+      type: string
+      enum:
+        - admin
+        - manager
+        - employee
+      description: Role assigned to an employee for permissions and system access.
+      example: "employee"
+
+    EmployeeStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+      description: Status of the employee record.
+      example: "ACTIVE"
+
+    Employee:
+      type: object
+      description: An employee record in the HR System.
+      required:
+        - id
+        - name
+        - email
+        - department
+        - role
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Auto-incrementing primary key ID.
+          example: 1
+        name:
+          type: string
+          description: Full name of the employee.
+          example: "Ram Bahadur"
+        email:
+          type: string
+          format: email
+          description: Unique email address of the employee.
+          example: "ram@honda.com"
+        department:
+          type: string
+          description: Department the employee belongs to.
+          example: "Sales"
+        role:
+          $ref: "#/components/schemas/EmployeeRole"
+        status:
+          $ref: "#/components/schemas/EmployeeStatus"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the employee was created (UTC).
+          example: "2026-10-10T12:19:23.818904766Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the employee was last updated (UTC).
+          example: "2026-10-10T12:19:23.818904766Z"
+
+    CreateEmployeeRequest:
+      type: object
+      description: Request payload for creating a new employee.
+      required:
+        - name
+        - email
+        - department
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Full name of the employee (cannot be empty or whitespace only).
+          example: "Ram Bahadur"
+        email:
+          type: string
+          format: email
+          description: Valid, unique email address.
+          example: "ram@honda.com"
+        department:
+          type: string
+          minLength: 1
+          description: Assigned department (cannot be empty or whitespace only).
+          example: "Sales"
+        role:
+          $ref: "#/components/schemas/EmployeeRole"
+          default: "employee"
+
+    LeaveType:
+      type: string
+      enum:
+        - ANNUAL
+        - SICK
+        - UNPAID
+      description: Type of leave.
+      example: "ANNUAL"
+
+    LeaveStatus:
+      type: string
+      enum:
+        - PENDING
+        - APPROVED
+        - REJECTED
+      description: Current status of the leave request.
+      example: "PENDING"
+
+    LeaveRequest:
+      type: object
+      description: A leave request record.
+      required:
+        - id
+        - employee_id
+        - leave_type
+        - start_date
+        - end_date
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Auto-incrementing primary key ID.
+          example: 1
+        employee_id:
+          type: integer
+          format: int64
+          description: Primary key ID of the employee requesting leave.
+          example: 1
+        leave_type:
+          $ref: "#/components/schemas/LeaveType"
+        start_date:
+          type: string
+          format: date
+          description: Leave start date in YYYY-MM-DD format.
+          example: "2026-11-01"
+        end_date:
+          type: string
+          format: date
+          description: Leave end date in YYYY-MM-DD format (must be on or after start_date).
+          example: "2026-11-05"
+        reason:
+          type: string
+          description: Optional reason or explanation for the leave request.
+          example: "Autumn vacation"
+        status:
+          $ref: "#/components/schemas/LeaveStatus"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the leave request was created (UTC).
+          example: "2026-10-11T04:12:18.471415449Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the leave request was last updated (UTC).
+          example: "2026-10-11T04:12:18.471415449Z"
+
+    CreateLeaveRequest:
+      type: object
+      description: Request payload for submitting a leave request.
+      required:
+        - employee_id
+        - leave_type
+        - start_date
+        - end_date
+      properties:
+        employee_id:
+          type: integer
+          format: int64
+          minimum: 1
+          description: ID of the employee requesting leave (must be a positive integer).
+          example: 1
+        leave_type:
+          $ref: "#/components/schemas/LeaveType"
+        start_date:
+          type: string
+          format: date
+          description: Start date formatted as YYYY-MM-DD.
+          example: "2026-11-01"
+        end_date:
+          type: string
+          format: date
+          description: End date formatted as YYYY-MM-DD (cannot be before start_date).
+          example: "2026-11-05"
+        reason:
+          type: string
+          description: Optional reason for the leave.
+          example: "Autumn vacation"
+
+    HealthResponse:
+      type: object
+      description: Health status response.
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - "ok"
+          example: "ok"
+
+  responses:
+    UnauthorizedError:
+      description: Unauthorized - missing X-User-Role header.
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: "unauthorized: missing X-User-Role header"
+
+    ForbiddenError:
+      description: Forbidden - insufficient permissions for the required action.
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: "forbidden: not enough permissions"
+
+    InternalServerError:
+      description: Internal Server Error - unexpected error or database failure.
+      content:
+        text/plain:
+          schema:
+            type: string
+          example: "internal server error"
